@@ -5,7 +5,7 @@ interface TrainingFormProps {
   distanceInput: string;
   onDateChange: (value: string) => void;
   onDistanceChange: (value: string) => void;
-  onSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 
 function TrainingForm({

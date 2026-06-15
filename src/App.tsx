@@ -12,21 +12,6 @@ function App() {
   const [distanceInput, setDistanceInput] = useState('')
   const [editingDate, setEditingDate] = useState<string | null>(null)
 
-  const mergeTrainingsByDate = (items: Training[]) => {
-    const grouped = new Map<string, Training>()
-
-    items.forEach((item) => {
-      const existing = grouped.get(item.date)
-      if (existing) {
-        existing.distance = parseFloat((existing.distance + item.distance).toFixed(2))
-      } else {
-        grouped.set(item.date, { ...item })
-      }
-    })
-
-    return Array.from(grouped.values())
-  }
-
   const addOrUpdate = (dateStr: string, distance: number, isEdit = false) => {
     const parsed = parseDate(dateStr)
     if (!parsed) return false
@@ -39,17 +24,32 @@ function App() {
         next = next.filter(({ date }) => date !== editingDate)
       }
 
-      next.push({ date: iso, dateDisplay: display, distance })
-      next = mergeTrainingsByDate(next)
+      const grouped = new Map<string, Training>()
+      next.forEach((item) => {
+        const existing = grouped.get(item.date)
+        if (existing) {
+          existing.distance = parseFloat((existing.distance + item.distance).toFixed(2))
+        } else {
+          grouped.set(item.date, { ...item })
+        }
+      })
 
-      return next.sort((a, b) => (b.date > a.date ? 1 : -1))
+      const existing = grouped.get(iso)
+      if (existing) {
+        existing.distance = parseFloat((existing.distance + distance).toFixed(2))
+      } else {
+        grouped.set(iso, { date: iso, dateDisplay: display, distance })
+      }
+
+      const result = Array.from(grouped.values())
+      return result.sort((a, b) => (b.date > a.date ? 1 : -1))
     })
 
     setEditingDate(null)
     return true
   }
 
-  const handleSubmit = (e: React.SubmitEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const distance = parseFloat(distanceInput.replace(',', '.'))
     if (isNaN(distance) || distance <= 0) return
